@@ -4,8 +4,11 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleAuthUseCase } from './application/google-auth.usecase';
 import { LoginUseCase } from './application/login.usecase';
+import { RequestPasswordResetUseCase } from './application/request-password-reset.usecase';
+import { ResetPasswordUseCase } from './application/reset-password.usecase';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
 
@@ -25,9 +28,13 @@ import { PrismaService } from 'src/infrastructure/database/prisma.service';
     providers: [
         GoogleAuthUseCase,
         LoginUseCase,
+        RequestPasswordResetUseCase,
+        ResetPasswordUseCase,
         GoogleStrategy,
+        JwtStrategy,
         GoogleAuthGuard,
         PrismaService,
     ],
+    exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

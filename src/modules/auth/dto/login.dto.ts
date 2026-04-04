@@ -18,9 +18,9 @@ export class LoginDto {
         required: false,
     })
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @MinLength(8)
-    password: string;
+    password?: string;
 
     @ApiProperty({
         description: 'PIN for Cashier authentication',

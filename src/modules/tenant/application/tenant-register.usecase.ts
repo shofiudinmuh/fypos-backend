@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { TenantRegisterDto } from '../dto/tenant-register.dto';
 import { addDays } from 'src/common/utils/date.utils';
 import { ERROR_MESSAGES } from 'src/common/constants/error-messages.constants';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class TenantRegisterUseCase {
@@ -67,7 +68,7 @@ export class TenantRegisterUseCase {
                         name: dto.name,
                         email: dto.ownerEmail,
                         password_hash: passwordHash,
-                        role: 'OWNER',
+                        role: Role.OWNER,
                         is_active: true,
                     },
                 });
@@ -91,12 +92,14 @@ export class TenantRegisterUseCase {
             const token = this.jwtService.sign({
                 sub: result.user.user_id,
                 tenant_id: result.tenant.tenant_id,
+                outlet_id: result.user.outlet_id,
                 role: result.user.role,
             });
 
             return {
                 access_token: token,
                 tenant_id: result.tenant.tenant_id,
+                outlet_id: result.user.outlet_id,
                 user: {
                     id: result.user.user_id,
                     name: result.user.name,

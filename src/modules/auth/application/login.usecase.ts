@@ -36,7 +36,12 @@ export class LoginUseCase {
                     throw new UnauthorizedException(ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS_PIN);
                 }
 
-                if (user.pin !== dto.pin) {
+                if (!user.pin) {
+                    throw new UnauthorizedException(ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS_PIN);
+                }
+
+                const isPinMatch = await bcrypt.compare(dto.pin, user.pin);
+                if (!isPinMatch) {
                     throw new UnauthorizedException(ERROR_MESSAGES.AUTH.WRONG_PIN);
                 }
             } else if (dto.password) {
