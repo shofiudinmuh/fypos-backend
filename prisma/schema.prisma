@@ -108,6 +108,7 @@ model Outlet {
 }
 
 enum Role {
+  SUPERADMIN
   OWNER
   ADMIN
   CASHIER

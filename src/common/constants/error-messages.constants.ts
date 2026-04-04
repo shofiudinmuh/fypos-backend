@@ -12,5 +12,7 @@ export const ERROR_MESSAGES = {
     TENANT: {
         ALREADY_REGISTERED: 'Email already registered as tenant owner',
         REGISTRATION_ERROR: 'Internal server error during registration. Try again later!',
+        NOT_FOUND: 'Tenant not found',
+        UPDATE_ERROR: 'Failed to update tenant profile',
     },
 };
