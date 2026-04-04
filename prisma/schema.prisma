@@ -4,8 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -14,159 +13,97 @@ datasource db {
 }
 
 model Tenant {
-  tenantId                 String  @id @default(cuid())
+  tenant_id                 String  @id @default(cuid())
   name                      String
-  ownerEmail                String  @unique
+  owner_email                String  @unique
   phone                     String?
   address                   String?
-  businessType              String?
+  business_type              String?
 
-  trialEndAt                DateTime
-  subscriptionStatus        String
-  subscriptionPlanId        String?
-  subscriptionEndAt         DateTime?
-  gracePeriodEndAt          DateTime?
+  trial_end_at                DateTime
+  subscription_status        String
+  subscription_plan_id        String?
+  subscription_end_at         DateTime?
+  grace_period_end_at          DateTime?
 
 
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
-  deletedAt                 DateTime @deletedAt
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime?
+  deleted_at                 DateTime?
+
+  subscriptionPlans          SubscriptionPlan ? @relation(fields: [subscription_plan_id], references: [subscription_plan_id])
 
   subscriptionPayments      SubscriptionPayment[]
-  subscriptionPlan          SubscriptionPlan ? @relation(fields: [subscriptionPlanId], references: [subscriptionPlanId])
-
   outlets                   Outlet[]
   users                     User[]
+  userPermissions           UserPermission[]
   offlineQueues             OfflineQueue[]
-
-  customers                 Customer[]
-  customerPoints            CustomerPoint[]
-  loyaltyRewards            LoyaltyReward[]
-  loyaltyTransactions       LoyaltyTransaction[]
-
-  discounts                 Discount[]
-  productCategories         ProductCategory[]
-  products                  Product[]
-  productVariants           ProductVariant[]
-  units                     Unit[]
-  productIngredients        ProductIngredient[]
-  suppliers                 Supplier[]
-  ingredients               Ingredient[]
-  inventories               Inventory[]
-  stockAdjusments           StockAdjustment[]
-  stockTransfers            StockTransfer[]
-  taxes                     Tax[]
-  tables                    Table[]
-  tableCategories           TableCategory[]
-
-  purchaseOrders            PurchaseOrder[]
-  purchaseOrderItems        PurchaseOrderItem[]
-
-  orders                    Order[]
-  orderItems                OrderItem[]
-  orderTaxes                OrderTax[]
-  orderDiscounts            OrderDiscount[]
-  payments                  Payment[]
-  orderPaymentItems         OrderPaymentItem[]
-  refunds                   Refund[]
-  reservations              Reservation[]
-  wasteTrackings            WasteTracking[]
-  expenses                  Expense[]
 
   activityLogs              ActivityLog[]
   apiLogs                   ApiLog[]
   shiftLogs                 ShiftLog[]
+  auditLogs                 AuditLog[]
 
   @@map("tenants")
 }
 
 model SubscriptionPlan{
-  subscriptionPlanId  String @id @default(cuid())
+  subscription_plan_id  String @id @default(cuid())
   name                String
-  priceMonthly        Float
-  priceYearly     Float
-  billingCycle    String
-  maxUsers    Int @default(3)
+  price_monthly        Float
+  price_yearly     Float
+  billing_cycle    String
+  max_users    Int @default(3)
   features    Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime @deletedAt
+  created_at   DateTime @default(now())
+  updated_at   DateTime?
+  deleted_at   DateTime?
 
   tenants    Tenant[]
+  subscriptionPayments      SubscriptionPayment[]
 
   @@map("subscription_plans")
 }
 
 model SubscriptionPayment{
-  subscriptionPaymentId String @id @default(cuid())
-  tenantId  String
-  subscriptionPlanId  String
-  orderId   String @unique //Midtrans/ Zabbix order ID
+  subscription_payment_id String @id @default(cuid())
+  tenant_id  String
+  subscription_plan_id  String
+  order_id   String @unique //Midtrans/ Zabbix order ID
   amount    Float
   status    String
-  paymentType  String
-  createdAt    DateTime @default(now())
-  settledAt    DateTime?
+  payment_type  String
+  created_at    DateTime @default(now())
+  settled_at    DateTime?
 
-  tenant      Tenant @relation(fields: [tenantId], references: [tenantId])
-  subscriptionPlan    SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [subscriptionPlanId])
+  tenant      Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  subscriptionPlan    SubscriptionPlan @relation(fields: [subscription_plan_id], references: [subscription_plan_id])
 
+  @@index([tenant_id])
   @@map("subscription_payments")
 }
 
 model Outlet {
-  outletId          String @id @default(cuid())
-  tenantId          String
+  outlet_id          String @id @default(cuid())
+  tenant_id         String
   name              String
   address           String
   phone             String
-  outletCode        String @unique
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime @deletedAt
+  outlet_code        String @unique
+  created_at         DateTime @default(now())
+  updated_at         DateTime?
+  deleted_at         DateTime?
 
-  tenants           Tenant @relation(fields: [tenantId], references: [tenantId])
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
   users             User[]
   offlineQueues     OfflineQueue[]
-  customers         Customer[]
-  customerPoints    CustomerPoint[]
-  loyaltyRewards    LoyaltyReward[]
-  loyaltyTransactions   LoyaltyTransaction[]
-
-  discounts             Discount[]
-  productCategories     ProductCategory[]
-  products              Product[]
-  productIngredients     ProductIngredient[]
-  productVariants       ProductVariant[]
-  units                 Unit[]
-  ingredients           Ingredient[]
-  suppliers             Supplier[]
-  inventories           Inventory[]
-  stockAdjusments       StockAdjustment[]
-  stockTransfers        StockTransfer[]
-  taxes                 Tax[]
-  tableCategories       TableCategory[]
-  tables                Table[]
-
-  purchaseOrders        PurchaseOrder[]
-  purchaseOrderItems    PurchaseOrderItem[]
-
-  orders                Order[]
-  orderItems            OrderItem[]
-  orderTaxes            OrderTax[]
-  orderDiscounts        OrderDiscount[]
-  payments              Payment[]
-  orderPaymentItems     OrderPaymentItem[]
-  refunds               refunds[]
-  reservations          Reservation[]
-  wasteTrackings        WasteTracking[]
-  expenses              Expense[]
 
   activityLogs          ActivityLog[]
   apiLogs               ApiLog[]
   shiftLogs             ShiftLog[]
+  auditLogs             AuditLog[]
 
-  @@index([tenantId])
+  @@index([tenant_id])
   @@map("outlets")
 }
 
@@ -177,177 +114,202 @@ enum Role {
 }
 
 model Permission {
-  permissionId         String @id @default(cuid())
+  permission_id         String @id @default(cuid())
   name                 String
   description          String
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  created_at            DateTime @default(now())
+  updated_at           DateTime?
+
+  rolePermissions       RolePermission[]
+  userPermissions       UserPermission[]
+
+  @@map("permissions")
 }
 
 model RolePermission {
-  rolePermissionId        String @id @default(cuid())
+  role_permission_id        String @id @default(cuid())
   role                    Role
-  permissionId            String
+  permission_id            String
 
-  permissions             Permission @relation(fields: [permissionId], references: [permissionId])
+  permissions             Permission @relation(fields: [permission_id], references: [permission_id])
 
   @@map("role_permissions")
 }
 
 model UserPermission{
-  userPermissionId        String @id @default(cuid())
-  tenantId                String
-  userId                  String
-  permissionId            String
-  grantedAt               DateTime @default(now())
-  grantedBy               String?
-  deletedAt               DateTime?
+  user_permission_id        String @id @default(cuid())
+  tenant_id                String
+  user_id                  String
+  permission_id            String
+  granted_at               DateTime @default(now())
+  granted_by               String?
+  deleted_at               DateTime?
 
-  users                   User @relation(fields: [userId], references: [userId])
-  permissions             Permission @relation(fields: [permissionId], references: [permissionId])
-  tenants                 Tenant @relation(fields: [tenantId], references: [tenantId])
+  users                   User @relation(fields: [user_id], references: [user_id])
+  permissions             Permission @relation(fields: [permission_id], references: [permission_id])
+  tenants                 Tenant @relation(fields: [tenant_id], references: [tenant_id])
 
-  @@index([tenantId])
+  @@index([tenant_id])
   @@map("user_permissions")
 }
 
 model Session {
-  sessionId         String @id @default(cuid())
-  userId            String
-  deviceInfo        String
-  createdAt         DateTime @default(now())
-  expiresAt         DateTime
-  isActive          Boolean
+  session_id         String @id @default(cuid())
+  user_id            String
+  device_info        String
+  created_at         DateTime @default(now())
+  expires_at         DateTime
+  is_active          Boolean
 
-  users           User @relation(fields: [userId], references:[userId])
+  users           User @relation(fields: [user_id], references:[user_id])
+  tokens          Token[]
 
   @@map("sessions")
 }
 
 model Token {
-  tokenId           String @id @default(cuid())
-  userId            String
-  sessionId         String
+  token_id           String @id @default(cuid())
+  user_id            String
+  session_id         String
   token             String
   type              String
-  expiresAt         DateTime
-  revokedAt         DateTime
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  expires_at         DateTime
+  revoked_at         DateTime
+  created_at         DateTime @default(now())
+  updated_at         DateTime?
 
-  users             User @relation(fields: [userId], references: [userId])
-  sessions          Session @relation(fields: [sessionId], references: [sessionId])
+  users             User @relation(fields: [user_id], references: [user_id])
+  sessions          Session @relation(fields: [session_id], references: [session_id])
 
   @@map("tokens")
 }
 
 model PasswordResetToken {
-  resetTokenId        String @id @default(cuid())
-  userId              String
+  reset_token_id        String @id @default(cuid())
+  user_id              String
   token               String
-  expiresAt           DateTime
-  createdAt           DateTime @default(now())
+  expires_at           DateTime
+  created_at           DateTime @default(now())
+
+  users               User @relation(fields: [user_id], references: [user_id])
 
   @@map("password_reset_tokens")
 }
 
 model User {
-  userId            String @id @default(cuid())
-  tenantId          String
-  outletId          String
+  user_id            String @id @default(cuid())
+  tenant_id          String
+  outlet_id         String
   name              String
   email             String @unique
-  passwordHash      String
+  password_hash     String?
   pin               String?
+  google_id         String?
   role              Role @default(CASHIER)
-  isActive          Boolean @default(true)
-  createdAt         DateTime @default(now())
+  is_active          Boolean @default(true)
+  created_at         DateTime @default(now())
+  updated_at         DateTime?
+  deleted_at         DateTime?
 
-  tenants           Tenant @relation(fields: [tenantId], references: [tenantId], onDelete: Cascade)
-  outlets           Outlet @relation(fields: [outletId], references: [outletId], onDelete: Cascade)
-  transactions      Transaction[]
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id], onDelete: Cascade)
+  passwordResetTokens     PasswordResetToken[]
   sessions          Session[]
+  tokens            Token[]
+  userPermissions   UserPermission[]
   activityLogs      ActivityLog[]
+  auditLogs         AuditLog[]
+  shiftLogs         ShiftLog[]
 
-  @@index([tenantId])
+
+  @@index([tenant_id])
   @@map("users")
 }
 
 model ShiftLog {
-  shiftLogId            String @id @default(cuid())
-  tenantId              String
-  outletId              String
-  userId                String
-  startTime             DateTime
-  endTime               DateTime
-  startCash             Decimal @db.Decimal(10,2)
-  endCash               Decimal @db.Decimal(10,2)
+  shift_log_id            String @id @default(cuid())
+  tenant_id              String
+  outlet_id             String
+  user_id                String
+  start_time             DateTime
+  end_time               DateTime
+  start_cash             Decimal @db.Decimal(10,2)
+  end_cash               Decimal @db.Decimal(10,2)
 
-  tenants           Tenant @relation(fields: [tenantId], references: [tenantId])
-  outlets           Outlet @relation(fields: [outletId], references: [outletId])
-  users             User @relation(fields: [userId], references: [userId])
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  users             User @relation(fields: [user_id], references: [user_id])
 
-  @@index([tenantId, outletId])
+  @@index([tenant_id, outlet_id])
   @@map("shift_logs")
 }
 
 model ActivityLog {
-  activityLogId         String @id @default(cuid())
-  tenantId              String
-  userId                String
+  activity_log_id         String @id @default(cuid())
+  tenant_id              String
+  outlet_id              String
+  user_id                String
   action                String
   payload               Json?
-  createdAt             DateTime @default(now())
+  created_at             DateTime @default(now())
 
-  tenants               Tenant @relation(fields: [tenantId], references: [tenantId])
-  users                 User @relation(fields: [userId], references: [userId])
+  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  users                 User @relation(fields: [user_id], references: [user_id])
 
-  @@index([tenantId, createdAt])
+  @@index([tenant_id, outlet_id, created_at])
   @@map("activity_logs")
 }
 
 model ApiLog {
-  apiLogId              String @id @default(cuid())
-  tenantId              String
+  api_log_id              String @id @default(cuid())
+  tenant_id              String
+  outlet_id              String
   method                String
   path                  String
-  statusCode            Int
+  status_code            Int
   duration              Int
-  createdAt             DateTime @default(now())
+  created_at             DateTime @default(now())
 
-  tenants               Tenant @relation(fields: [tenantId], references: [tenantId])
+  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
 
-  @@index([tenantId, createdAt])
+  @@index([tenant_id, outlet_id, created_at])
   @@map("api_logs")
 }
 
 model AuditLog {
-  auditLogId            String @id @default(cuid())
-  tenantId              String
-  userId                String
+  audit_log_id            String @id @default(cuid())
+  tenant_id              String
+  outlet_id              String
+  user_id                String
   action                String
   entity                String
-  entityId              String
-  oldValue              Json?
-  newValue              Json?
-  createdAt             DateTime @default(now())
+  entity_id              String
+  old_value              Json?
+  new_value              Json?
+  created_at             DateTime @default(now())
 
-  tenants               Tenant @relation(fields: [tenantId], references: [tenantId])
+  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  users                 User @relation(fields: [user_id], references: [user_id])
 
-  @@index([tenantId, createdAt])
+  @@index([tenant_id,outlet_id, created_at])
   @@map("audit_logs")
 }
 
 model OfflineQueue {
-  offlineQueueId        String @id @default(cuid())
-  tenantId              String
+  offline_queue_id        String @id @default(cuid())
+  tenant_id              String
+  outlet_id              String
   type                  String
   payload               Json
   status                String @default("PENDING")
-  createdAt             DateTime @default(now())
+  created_at             DateTime @default(now())
 
-  tenants               Tenant @relation(fields: [tenantId], references: [tenantId])
+  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
 
-  @@index([tenantId, status])
+  @@index([tenant_id, outlet_id, status])
   @@map("offline_queues")
 }
