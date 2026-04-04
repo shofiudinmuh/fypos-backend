@@ -1,11 +1,33 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { TenantModule } from './modules/tenant/tenant.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { BullModule } from '@nestjs/bullmq';
+import { RedisProvider } from './infrastructure/database/redis.provider';
 
 @Module({
-  imports: [AuthModule],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: '.env',
+        }),
+
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                connection: {
+                    host: configService.get<string>('REDIS_HOST', 'localhost'),
+                    port: configService.get<number>('REDIS_PORT', 6379),
+                },
+            }),
+            inject: [ConfigService],
+        }),
+        TenantModule,
+        AuthModule,
+    ],
+    controllers: [AppController],
+    providers: [AppService, RedisProvider],
 })
 export class AppModule {}
