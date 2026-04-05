@@ -24,7 +24,6 @@ export class UpdateOutletDto {
         required: false,
         example: '021-999-888',
     })
-    @IsString()
     @IsOptional()
     @IsNotEmpty()
     phone?: string;

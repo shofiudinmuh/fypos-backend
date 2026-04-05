@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,
@@ -24,6 +24,17 @@
       "@generated/*": [
         "generated/*"
       ]
-    }
+    },
+    "types": [
+      "jest",
+      "node"
+    ]
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ],
+  "scripts": {
+    "test:e2e": "jest --config ./test/jest-e2e.json"
   }
 }

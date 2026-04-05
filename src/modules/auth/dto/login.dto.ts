@@ -37,7 +37,7 @@ export class LoginDto {
     })
     @IsString()
     @IsOptional()
-    outlet_id: string;
+    outlet_id?: string;
 
     @ApiProperty({
         description: 'Device Information for session tracking',
