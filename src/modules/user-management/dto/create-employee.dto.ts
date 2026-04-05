@@ -9,7 +9,7 @@ export class CreateEmployeeDto {
     })
     @IsString()
     @IsNotEmpty()
-    name: string;
+    name!: string;
 
     @ApiProperty({
         description: 'Employee Email Address',
@@ -17,7 +17,7 @@ export class CreateEmployeeDto {
     })
     @IsEmail()
     @IsNotEmpty()
-    email: string;
+    email!: string;
 
     @ApiProperty({
         description: 'Login Password (for ADMIN role)',
@@ -45,7 +45,7 @@ export class CreateEmployeeDto {
     })
     @IsEnum(Role)
     @IsNotEmpty()
-    role: Role;
+    role!: Role;
 
     @ApiProperty({
         description: 'Target Outlet ID',
@@ -53,5 +53,5 @@ export class CreateEmployeeDto {
     })
     @IsString()
     @IsNotEmpty()
-    outlet_id: string;
+    outlet_id!: string;
 }

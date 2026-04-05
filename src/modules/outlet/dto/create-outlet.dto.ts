@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsPhoneNumber, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateOutletDto {
@@ -8,7 +8,7 @@ export class CreateOutletDto {
     })
     @IsString()
     @IsNotEmpty()
-    name: string;
+    name!: string;
 
     @ApiProperty({
         description: 'Complete address of the outlet',
@@ -16,7 +16,7 @@ export class CreateOutletDto {
     })
     @IsString()
     @IsNotEmpty()
-    address: string;
+    address!: string;
 
     @ApiProperty({
         description: 'Outlet contact phone number',
@@ -24,5 +24,5 @@ export class CreateOutletDto {
     })
     @IsString()
     @IsNotEmpty()
-    phone: string;
+    phone!: string;
 }
