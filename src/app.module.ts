@@ -9,9 +9,20 @@ import { UserManagementModule } from './modules/user-management/user-management.
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { BullModule } from '@nestjs/bullmq';
 import { RedisProvider } from './infrastructure/database/redis.provider';
+import { ProductCategoryModule } from './modules/product-category/product-category.module';
+import { ProductModule } from './modules/product/product.module';
+import { ProductVariantModule } from './modules/product-variant/product-variant.module';
+import { ProductIngredientModule } from './modules/product-ingredient/product-ingredient.module';
+import { IngredientModule } from './modules/ingredient/ingredient.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
     imports: [
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '..', 'uploads'),
+            serveRoot: '/uploads',
+        }),
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: '.env',
@@ -31,6 +42,11 @@ import { RedisProvider } from './infrastructure/database/redis.provider';
         AuthModule,
         OutletModule,
         UserManagementModule,
+        ProductCategoryModule,
+        ProductModule,
+        ProductVariantModule,
+        IngredientModule,
+        ProductIngredientModule,
         AuditLogModule,
     ],
     controllers: [AppController],

@@ -193,6 +193,30 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     get offlineQueue() {
         return this._client.offlineQueue;
     }
+
+    get productCategory() {
+        return this._client.productCategory;
+    }
+
+    get product() {
+        return this._client.product;
+    }
+
+    get productVariant() {
+        return this._client.productVariant;
+    }
+
+    get unit() {
+        return this._client.unit;
+    }
+
+    get ingredient(){
+        return this._client.ingredient;
+    }
+
+    get productIngredient() {
+        return this._client.productIngredient;
+    }
 }
 
 // import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';

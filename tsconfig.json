@@ -27,7 +27,8 @@
     },
     "types": [
       "jest",
-      "node"
+      "node",
+      "multer"
     ]
   },
   "include": [
@@ -35,6 +36,9 @@
     "test/**/*"
   ],
   "scripts": {
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand=false"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
   }
 }
