@@ -1,15 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  
 }
 
 model Tenant {
@@ -38,6 +32,12 @@ model Tenant {
   users                     User[]
   userPermissions           UserPermission[]
   offlineQueues             OfflineQueue[]
+  productCategories         ProductCategory[]
+  productVariants           ProductVariant[]
+  ingredients               Ingredient[]
+  productIngredients        ProductIngredient[]
+  products                  Product[]
+  units                     Unit[]
 
   activityLogs              ActivityLog[]
   apiLogs                   ApiLog[]
@@ -47,37 +47,35 @@ model Tenant {
   @@map("tenants")
 }
 
-model SubscriptionPlan{
-  subscription_plan_id  String @id @default(cuid())
-  name                String
+model SubscriptionPlan {
+  name                 String
+  features             Json
+  billing_cycle        String
+  created_at           DateTime              @default(now())
+  deleted_at           DateTime?
+  max_users            Int                   @default(3)
   price_monthly        Float
-  price_yearly     Float
-  billing_cycle    String
-  max_users    Int @default(3)
-  features    Json
-  created_at   DateTime @default(now())
-  updated_at   DateTime?
-  deleted_at   DateTime?
-
-  tenants    Tenant[]
-  subscriptionPayments      SubscriptionPayment[]
+  price_yearly         Float
+  subscription_plan_id String                @id @default(cuid())
+  updated_at           DateTime?
+  subscriptionPayments SubscriptionPayment[]
+  tenants              Tenant[]
 
   @@map("subscription_plans")
 }
 
-model SubscriptionPayment{
-  subscription_payment_id String @id @default(cuid())
-  tenant_id  String
-  subscription_plan_id  String
-  order_id   String @unique //Midtrans/ Zabbix order ID
-  amount    Float
-  status    String
-  payment_type  String
-  created_at    DateTime @default(now())
-  settled_at    DateTime?
-
-  tenant      Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  subscriptionPlan    SubscriptionPlan @relation(fields: [subscription_plan_id], references: [subscription_plan_id])
+model SubscriptionPayment {
+  amount                  Float
+  status                  String
+  created_at              DateTime         @default(now())
+  order_id                String           @unique
+  payment_type            String
+  settled_at              DateTime?
+  subscription_payment_id String           @id @default(cuid())
+  subscription_plan_id    String
+  tenant_id               String
+  subscriptionPlan        SubscriptionPlan @relation(fields: [subscription_plan_id], references: [subscription_plan_id])
+  tenant                  Tenant           @relation(fields: [tenant_id], references: [tenant_id])
 
   @@index([tenant_id])
   @@map("subscription_payments")
@@ -98,6 +96,13 @@ model Outlet {
   users             User[]
   offlineQueues     OfflineQueue[]
 
+  productCategories         ProductCategory[]
+  productVariants           ProductVariant[]
+  ingredients               Ingredient[]
+  productIngredients        ProductIngredient[]
+  products                  Product[]
+  units                     Unit[]
+
   activityLogs          ActivityLog[]
   apiLogs               ApiLog[]
   shiftLogs             ShiftLog[]
@@ -107,210 +112,316 @@ model Outlet {
   @@map("outlets")
 }
 
-enum Role {
-  SUPERADMIN
-  OWNER
-  ADMIN
-  CASHIER
-}
-
 model Permission {
-  permission_id         String @id @default(cuid())
-  name                 String
-  description          String
-  created_at            DateTime @default(now())
-  updated_at           DateTime?
-
-  rolePermissions       RolePermission[]
-  userPermissions       UserPermission[]
+  name            String
+  description     String
+  created_at      DateTime         @default(now())
+  permission_id   String           @id @default(cuid())
+  updated_at      DateTime?
+  rolePermissions RolePermission[]
+  userPermissions UserPermission[]
 
   @@map("permissions")
 }
 
 model RolePermission {
-  role_permission_id        String @id @default(cuid())
-  role                    Role
-  permission_id            String
-
-  permissions             Permission @relation(fields: [permission_id], references: [permission_id])
+  role               Role
+  permission_id      String
+  role_permission_id String     @id @default(cuid())
+  permissions        Permission @relation(fields: [permission_id], references: [permission_id])
 
   @@map("role_permissions")
 }
 
-model UserPermission{
-  user_permission_id        String @id @default(cuid())
-  tenant_id                String
-  user_id                  String
-  permission_id            String
-  granted_at               DateTime @default(now())
-  granted_by               String?
-  deleted_at               DateTime?
-
-  users                   User @relation(fields: [user_id], references: [user_id])
-  permissions             Permission @relation(fields: [permission_id], references: [permission_id])
-  tenants                 Tenant @relation(fields: [tenant_id], references: [tenant_id])
+model UserPermission {
+  deleted_at         DateTime?
+  granted_at         DateTime   @default(now())
+  granted_by         String?
+  permission_id      String
+  tenant_id          String
+  user_id            String
+  user_permission_id String     @id @default(cuid())
+  permissions        Permission @relation(fields: [permission_id], references: [permission_id])
+  tenants            Tenant     @relation(fields: [tenant_id], references: [tenant_id])
+  users              User       @relation(fields: [user_id], references: [user_id])
 
   @@index([tenant_id])
   @@map("user_permissions")
 }
 
 model Session {
-  session_id         String @id @default(cuid())
-  user_id            String
-  device_info        String
-  created_at         DateTime @default(now())
-  expires_at         DateTime
-  is_active          Boolean
-
-  users           User @relation(fields: [user_id], references:[user_id])
-  tokens          Token[]
+  created_at  DateTime @default(now())
+  device_info String
+  expires_at  DateTime
+  is_active   Boolean
+  session_id  String   @id @default(cuid())
+  user_id     String
+  users       User     @relation(fields: [user_id], references: [user_id])
+  tokens      Token[]
 
   @@map("sessions")
 }
 
 model Token {
-  token_id           String @id @default(cuid())
-  user_id            String
-  session_id         String
-  token             String
-  type              String
-  expires_at         DateTime
-  revoked_at         DateTime
-  created_at         DateTime @default(now())
-  updated_at         DateTime?
-
-  users             User @relation(fields: [user_id], references: [user_id])
-  sessions          Session @relation(fields: [session_id], references: [session_id])
+  token      String
+  type       String
+  created_at DateTime  @default(now())
+  expires_at DateTime
+  revoked_at DateTime
+  session_id String
+  token_id   String    @id @default(cuid())
+  updated_at DateTime?
+  user_id    String
+  sessions   Session   @relation(fields: [session_id], references: [session_id])
+  users      User      @relation(fields: [user_id], references: [user_id])
 
   @@map("tokens")
 }
 
 model PasswordResetToken {
-  reset_token_id        String @id @default(cuid())
-  user_id              String
-  token               String
-  expires_at           DateTime
-  created_at           DateTime @default(now())
-
-  users               User @relation(fields: [user_id], references: [user_id])
+  token          String
+  created_at     DateTime @default(now())
+  expires_at     DateTime
+  reset_token_id String   @id @default(cuid())
+  user_id        String
+  users          User     @relation(fields: [user_id], references: [user_id])
 
   @@map("password_reset_tokens")
 }
 
 model User {
-  user_id            String @id @default(cuid())
-  tenant_id          String
-  outlet_id         String
-  name              String
-  email             String @unique
-  password_hash     String?
-  pin               String?
-  google_id         String?
-  role              Role @default(CASHIER)
-  is_active          Boolean @default(true)
-  created_at         DateTime @default(now())
-  updated_at         DateTime?
-  deleted_at         DateTime?
-
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
-  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id], onDelete: Cascade)
-  passwordResetTokens     PasswordResetToken[]
-  sessions          Session[]
-  tokens            Token[]
-  userPermissions   UserPermission[]
-  activityLogs      ActivityLog[]
-  auditLogs         AuditLog[]
-  shiftLogs         ShiftLog[]
-
+  name                String
+  email               String               @unique
+  pin                 String?
+  role                Role                 @default(CASHIER)
+  created_at          DateTime             @default(now())
+  deleted_at          DateTime?
+  is_active           Boolean              @default(true)
+  outlet_id           String
+  password_hash       String?
+  tenant_id           String
+  updated_at          DateTime?
+  user_id             String               @id @default(cuid())
+  google_id           String?
+  activityLogs        ActivityLog[]
+  auditLogs           AuditLog[]
+  passwordResetTokens PasswordResetToken[]
+  sessions            Session[]
+  shiftLogs           ShiftLog[]
+  tokens              Token[]
+  userPermissions     UserPermission[]
+  outlets             Outlet               @relation(fields: [outlet_id], references: [outlet_id], onDelete: Cascade)
+  tenants             Tenant               @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
   @@index([tenant_id])
   @@map("users")
 }
 
 model ShiftLog {
-  shift_log_id            String @id @default(cuid())
-  tenant_id              String
-  outlet_id             String
-  user_id                String
-  start_time             DateTime
-  end_time               DateTime
-  start_cash             Decimal @db.Decimal(10,2)
-  end_cash               Decimal @db.Decimal(10,2)
-
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  users             User @relation(fields: [user_id], references: [user_id])
+  end_cash     Decimal  @db.Decimal(10, 2)
+  end_time     DateTime
+  outlet_id    String
+  shift_log_id String   @id @default(cuid())
+  start_cash   Decimal  @db.Decimal(10, 2)
+  start_time   DateTime
+  tenant_id    String
+  user_id      String
+  outlets      Outlet   @relation(fields: [outlet_id], references: [outlet_id])
+  tenants      Tenant   @relation(fields: [tenant_id], references: [tenant_id])
+  users        User     @relation(fields: [user_id], references: [user_id])
 
   @@index([tenant_id, outlet_id])
   @@map("shift_logs")
 }
 
 model ActivityLog {
-  activity_log_id         String @id @default(cuid())
-  tenant_id              String
-  outlet_id              String
-  user_id                String
-  action                String
-  payload               Json?
-  created_at             DateTime @default(now())
-
-  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  users                 User @relation(fields: [user_id], references: [user_id])
+  action          String
+  payload         Json?
+  activity_log_id String   @id @default(cuid())
+  created_at      DateTime @default(now())
+  outlet_id       String
+  tenant_id       String
+  user_id         String
+  outlets         Outlet   @relation(fields: [outlet_id], references: [outlet_id])
+  tenants         Tenant   @relation(fields: [tenant_id], references: [tenant_id])
+  users           User     @relation(fields: [user_id], references: [user_id])
 
   @@index([tenant_id, outlet_id, created_at])
   @@map("activity_logs")
 }
 
 model ApiLog {
-  api_log_id              String @id @default(cuid())
-  tenant_id              String
-  outlet_id              String
-  method                String
-  path                  String
-  status_code            Int
-  duration              Int
-  created_at             DateTime @default(now())
-
-  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  method      String
+  path        String
+  duration    Int
+  api_log_id  String   @id @default(cuid())
+  created_at  DateTime @default(now())
+  outlet_id   String
+  status_code Int
+  tenant_id   String
+  outlets     Outlet   @relation(fields: [outlet_id], references: [outlet_id])
+  tenants     Tenant   @relation(fields: [tenant_id], references: [tenant_id])
 
   @@index([tenant_id, outlet_id, created_at])
   @@map("api_logs")
 }
 
 model AuditLog {
-  audit_log_id            String @id @default(cuid())
-  tenant_id              String
-  outlet_id              String
-  user_id                String
-  action                String
-  entity                String
-  entity_id              String
-  old_value              Json?
-  new_value              Json?
-  created_at             DateTime @default(now())
+  action       String
+  entity       String
+  audit_log_id String   @id @default(cuid())
+  created_at   DateTime @default(now())
+  entity_id    String
+  new_value    Json?
+  old_value    Json?
+  outlet_id    String
+  tenant_id    String
+  user_id      String
+  outlets      Outlet   @relation(fields: [outlet_id], references: [outlet_id])
+  tenants      Tenant   @relation(fields: [tenant_id], references: [tenant_id])
+  users        User     @relation(fields: [user_id], references: [user_id])
 
-  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  users                 User @relation(fields: [user_id], references: [user_id])
-
-  @@index([tenant_id,outlet_id, created_at])
+  @@index([tenant_id, outlet_id, created_at])
   @@map("audit_logs")
 }
 
 model OfflineQueue {
-  offline_queue_id        String @id @default(cuid())
-  tenant_id              String
-  outlet_id              String
-  type                  String
-  payload               Json
-  status                String @default("PENDING")
-  created_at             DateTime @default(now())
-
-  tenants               Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets               Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  type             String
+  payload          Json
+  status           String   @default("PENDING")
+  created_at       DateTime @default(now())
+  offline_queue_id String   @id @default(cuid())
+  outlet_id        String
+  tenant_id        String
+  outlets          Outlet   @relation(fields: [outlet_id], references: [outlet_id])
+  tenants          Tenant   @relation(fields: [tenant_id], references: [tenant_id])
 
   @@index([tenant_id, outlet_id, status])
   @@map("offline_queues")
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  ADMIN
+  CASHIER
+  SUPERADMIN
+}
+
+
+model ProductCategory {
+  product_category_id String @id @default(cuid())
+  tenant_id     String
+  outlet_id     String
+  category_name     String @db.VarChar(50)
+  description       String @db.Text
+  created_at        DateTime @default(now())
+  updated_at        DateTime?
+  deleted_at        DateTime?
+
+  tenants         Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets         Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  products        Product[]
+
+  @@index([tenant_id, outlet_id])
+  @@map("product_categories")
+}
+
+model Product {
+  product_id        String @id @default(cuid())
+  tenant_id         String
+  outlet_id         String
+  product_category_id       String
+  name              String @db.VarChar(100)
+  sku               String?
+  description       String? @db.Text()
+  price             Decimal @db.Decimal(10, 2)
+  image_url         String?
+  is_active         Boolean @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime?
+  deleted_at        DateTime?
+
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  productCategories         ProductCategory @relation(fields: [product_category_id], references: [product_category_id])
+  productVariants         ProductVariant[]
+  productIngredients        ProductIngredient[]
+  @@index([tenant_id, outlet_id])
+  @@map("products")
+}
+
+model ProductVariant {
+  product_variant_id         String @id @default(cuid())
+  tenant_id                 String
+  outlet_id                 String
+  product_id                String
+  variant_name              String @db.VarChar(100)
+  description               String @db.Text
+  is_active                 Boolean @default(true)
+  created_at                DateTime @default(now())
+  updated_at                DateTime?
+  deleted_at                DateTime?
+
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  products          Product @relation(fields: [product_id], references: [product_id])
+
+  @@index([tenant_id, outlet_id, product_id])
+  @@map("product_variants")
+}
+
+model Unit {
+  unit_id           String @id @default(cuid())
+  tenant_id         String
+  outlet_id         String
+  unit_name         String @db.VarChar(10)
+  is_active         Boolean @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime?
+  deleted_at        DateTime?
+
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+
+  @@index([tenant_id, outlet_id])
+  @@map("units")
+}
+
+model Ingredient {
+  ingredient_id String @id @default(cuid())
+  tenant_id String
+  outlet_id String
+  ingredient_name String @db.VarChar(100)
+  unit String @db.VarChar(10)
+  minimum_stock Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime?
+  deleted_at DateTime?
+
+  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  productIngredients ProductIngredient[]
+
+  @@index([tenant_id, outlet_id])
+  @@map("ingredients")
+}
+
+model ProductIngredient {
+  product_ingredient_id       String @id @default(cuid())
+  tenant_id           String
+  outlet_id           String
+  product_id          String
+  ingredient_id       String
+  qty                 Int
+  created_at          DateTime @default(now())
+  updated_at          DateTime?
+  deleted_at          DateTime?
+
+  tenants             Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets             Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  products            Product @relation(fields: [product_id], references: [product_id])
+  ingredients         Ingredient @relation(fields: [ingredient_id], references: [ingredient_id])
+  @@index([tenant_id, outlet_id, product_id])
+  @@map("product_ingredients")
 }
