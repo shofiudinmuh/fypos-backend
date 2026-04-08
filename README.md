@@ -1,98 +1,125 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# FyPOS Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API untuk FyPOS (multi-tenant Point of Sale) dibangun dengan NestJS + Prisma, menggunakan PostgreSQL sebagai database dan Redis untuk cache/queue.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Fitur utama
 
-## Description
+- Multi-tenant: entitas tenant/outlet & manajemen karyawan.
+- Authentication: JWT login + Google OAuth (redirect ke frontend).
+- Master data produk: product, category, variant, ingredient, product-ingredient.
+- Audit log: histori aktivitas untuk owner.
+- File upload: image produk (multipart) dan serve statis di `/uploads`.
+- Swagger: dokumentasi API di `/api`.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech stack
 
-## Project setup
+- NestJS (TypeScript)
+- Prisma ORM + PostgreSQL
+- Redis (node-redis) + BullMQ (disiapkan)
+- Swagger (`@nestjs/swagger`)
 
-```bash
-$ npm install
+## Prasyarat
+
+- Node.js (disarankan Node 20+)
+- PostgreSQL
+- Redis
+
+## Environment variables
+
+Project ini membaca `.env` (lihat `src/app.module.ts`).
+
+**Wajib**
+
+- `PORT`
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `MIDTRANS_SERVER_KEY`
+
+**Umum / disarankan**
+
+- `FRONTEND_URL` (untuk redirect Google OAuth)
+- `JWT_EXPIRATION` (saat ini JWT expire diset `24h` di module)
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`
+- `MIDTRANS_CLIENT_KEY`, `MIDTRANS_IS_PRODUCTION`
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
+
+Contoh minimal:
+
+```env
+PORT=3000
+FRONTEND_URL=http://localhost:5173
+
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/fypos?schema=public
+JWT_SECRET=change-me
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+MIDTRANS_SERVER_KEY=change-me
+MIDTRANS_CLIENT_KEY=change-me
+MIDTRANS_IS_PRODUCTION=false
+
+GOOGLE_CLIENT_ID=change-me
+GOOGLE_CLIENT_SECRET=change-me
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 ```
 
-## Compile and run the project
+## Menjalankan project (dev)
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+Migrasi DB + generate Prisma client:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npx prisma migrate dev
+npx prisma generate
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Run:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Swagger (API Docs)
 
-## Resources
+- Buka: `http://localhost:<PORT>/api`
 
-Check out a few resources that may come in handy when working with NestJS:
+## Auth & Roles
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Gunakan header `Authorization: Bearer <token>` untuk endpoint yang dilindungi.
+- Role yang dipakai di controller: `SUPERADMIN`, `OWNER`, `MANAGER`, `ADMIN`, `CASHIER`.
+- Google OAuth flow:
+  - `GET /auth/google` untuk redirect ke Google
+  - callback akan redirect ke `FRONTEND_URL/auth/callback?token=...&tenant_id=...`
 
-## Support
+## Upload file
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- Endpoint create/update product menerima `multipart/form-data` dengan field `image`.
+- File disimpan ke folder `uploads/` dan bisa diakses via URL `/uploads/...` (lihat `src/app.module.ts` dan `src/common/services/file-upload.service.ts`).
 
-## Stay in touch
+## Scripts
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm run start
+npm run start:dev
+npm run start:prod
+npm run build
+npm run lint
+npm run format
+npm run test
+npm run test:e2e
+```
 
-## License
+## Struktur folder (ringkas)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `src/modules/*`: controller + usecase + dto per domain
+- `src/infrastructure/database`: Prisma + Redis provider
+- `prisma/`: schema dan migrations
+
+## Catatan
+
+- CORS origin saat ini dibatasi ke `https://fypos.id` dan `http://localhost:5173` (lihat `src/main.ts`).

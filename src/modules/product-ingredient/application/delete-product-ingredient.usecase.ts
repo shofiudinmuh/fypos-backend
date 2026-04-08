@@ -5,17 +5,12 @@ import { PrismaService } from 'src/infrastructure/database/prisma.service';
 export class DeleteProductIngredientUseCase {
     constructor(private prisma: PrismaService) {}
 
-    async execute(
-        tenantId: string,
-        outletId: string,
-        userId: string,
-        ingredientId: string,
-    ) {
+    async execute(tenantId: string, outletId: string, userId: string, productIngredientId: string) {
         try {
             // Check ingredient exists
             const existingIngredient = await this.prisma.productIngredient.findFirst({
                 where: {
-                    ingredient_id: ingredientId,
+                    product_ingredient_id: productIngredientId,
                     tenant_id: tenantId,
                     outlet_id: outletId,
                     deleted_at: null,
@@ -28,7 +23,7 @@ export class DeleteProductIngredientUseCase {
 
             await this.prisma.$transaction(async (tx) => {
                 await tx.productIngredient.update({
-                    where: { ingredient_id: ingredientId },
+                    where: { product_ingredient_id: productIngredientId },
                     data: {
                         deleted_at: new Date(),
                     },
@@ -42,13 +37,13 @@ export class DeleteProductIngredientUseCase {
                         user_id: userId,
                         action: 'DELETE',
                         entity: 'Product Ingredient',
-                        entity_id: ingredientId,
+                        entity_id: productIngredientId,
                         old_value: {
                             qty: existingIngredient.qty,
                             deleted_at: null,
                         },
                         new_value: {
-                            deleted_at: "new Date()",
+                            deleted_at: new Date().toISOString(),
                         },
                     },
                 });

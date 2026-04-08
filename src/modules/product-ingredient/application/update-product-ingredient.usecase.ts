@@ -10,14 +10,14 @@ export class UpdateProductIngredientUseCase {
         tenantId: string,
         outletId: string,
         userId: string,
-        ingredientId: string,
+        productIngredientId: string,
         dto: UpdateProductIngredientDto,
     ) {
         try {
             // Check ingredient exists
             const existingIngredient = await this.prisma.productIngredient.findFirst({
                 where: {
-                    ingredient_id: ingredientId,
+                    product_ingredient_id: productIngredientId,
                     tenant_id: tenantId,
                     outlet_id: outletId,
                     deleted_at: null,
@@ -46,7 +46,7 @@ export class UpdateProductIngredientUseCase {
 
             const ingredient = await this.prisma.$transaction(async (tx) => {
                 const updatedIngredient = await tx.productIngredient.update({
-                    where: { ingredient_id: ingredientId },
+                    where: { product_ingredient_id: productIngredientId },
                     data: {
                         product_id: dto.product_id,
                         qty: dto.qty,
@@ -62,7 +62,7 @@ export class UpdateProductIngredientUseCase {
                         user_id: userId,
                         action: 'UPDATE',
                         entity: 'Product Ingredient',
-                        entity_id: ingredientId,
+                        entity_id: productIngredientId,
                         old_value: {
                             product_id: existingIngredient.product_id,
                             qty: existingIngredient.qty,

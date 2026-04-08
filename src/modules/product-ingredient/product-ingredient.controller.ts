@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Patch, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
+import {
+    Controller,
+    Post,
+    Get,
+    Patch,
+    Delete,
+    Body,
+    Param,
+    UseGuards,
+    Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -43,7 +53,12 @@ export class ProductIngredientController {
     @ApiQuery({ name: 'product_id', required: false, description: 'Filter by product ID' })
     @ApiResponse({ status: 200, description: 'Product ingredients fetched successfully' })
     async findAll(@CurrentUser() user: any, @Query('product_id') productId?: string) {
-        return this.getProductIngredientUseCase.execute(user.tenant_id, user.outlet_id, undefined, productId);
+        return this.getProductIngredientUseCase.execute(
+            user.tenant_id,
+            user.outlet_id,
+            undefined,
+            productId,
+        );
     }
 
     @Get(':id')
@@ -51,7 +66,11 @@ export class ProductIngredientController {
     @ApiOperation({ summary: 'Get Product Ingredient by ID' })
     @ApiResponse({ status: 200, description: 'Product ingredient fetched successfully' })
     async findOne(@CurrentUser() user: any, @Param('id') ingredientId: string) {
-        return this.getProductIngredientUseCase.execute(user.tenant_id, user.outlet_id, ingredientId);
+        return this.getProductIngredientUseCase.execute(
+            user.tenant_id,
+            user.outlet_id,
+            ingredientId,
+        );
     }
 
     @Patch(':id')
@@ -60,14 +79,14 @@ export class ProductIngredientController {
     @ApiResponse({ status: 200, description: 'Product ingredient updated successfully' })
     async update(
         @CurrentUser() user: any,
-        @Param('id') ingredientId: string,
+        @Param('id') productIngredientId: string,
         @Body() dto: UpdateProductIngredientDto,
     ) {
         return this.updateProductIngredientUseCase.execute(
             user.tenant_id,
             user.outlet_id,
             user.user_id,
-            ingredientId,
+            productIngredientId,
             dto,
         );
     }
@@ -76,12 +95,12 @@ export class ProductIngredientController {
     @Roles('OWNER', 'MANAGER', 'ADMIN')
     @ApiOperation({ summary: 'Delete Product Ingredient' })
     @ApiResponse({ status: 200, description: 'Product ingredient deleted successfully' })
-    async delete(@CurrentUser() user: any, @Param('id') ingredientId: string) {
+    async delete(@CurrentUser() user: any, @Param('id') productIngredientId: string) {
         return this.deleteProductIngredientUseCase.execute(
             user.tenant_id,
             user.outlet_id,
             user.user_id,
-            ingredientId,
+            productIngredientId,
         );
     }
 }
