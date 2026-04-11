@@ -210,12 +210,48 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
         return this._client.unit;
     }
 
-    get ingredient(){
+    get ingredient() {
         return this._client.ingredient;
     }
 
     get productIngredient() {
         return this._client.productIngredient;
+    }
+
+    get register() {
+        return this._client.register;
+    }
+
+    get device() {
+        return this._client.device;
+    }
+
+    get paymentMethod() {
+        return this._client.paymentMethod;
+    }
+
+    get orderSession() {
+        return this._client.orderSession;
+    }
+
+    get orderItem() {
+        return this._client.orderItem;
+    }
+
+    get sale() {
+        return this._client.orderSession;
+    }
+
+    get saleItem() {
+        return this._client.saleItem;
+    }
+
+    get salePayment() {
+        return this._client.salePayment;
+    }
+
+    get refund() {
+        return this._client.refund;
     }
 }
 

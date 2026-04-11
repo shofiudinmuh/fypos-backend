@@ -138,6 +138,7 @@ describe('Product, Variant, and Ingredient management (e2e)', () => {
                 .send({
                     product_id: testProductId,
                     variant_name: 'Large',
+                    price: '35000',
                     description: 'Large size 500ml',
                 })
                 .expect(201);
@@ -164,6 +165,7 @@ describe('Product, Variant, and Ingredient management (e2e)', () => {
                 .set('Authorization', `Bearer ${ownerToken}`)
                 .send({
                     variant_name: 'Extra Large',
+                    price: '40000',
                 })
                 .expect(200);
 

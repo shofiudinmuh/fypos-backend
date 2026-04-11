@@ -6,12 +6,7 @@ import { CreateIngredientDto } from '../dto/create-ingredient.dto';
 export class CreateIngredientUseCase {
     constructor(private prisma: PrismaService) {}
 
-    async execute(
-        tenantId: string,
-        outletId: string,
-        userId: string,
-        dto: CreateIngredientDto,
-    ) {
+    async execute(tenantId: string, outletId: string, userId: string, dto: CreateIngredientDto) {
         try {
             const ingredient = await this.prisma.$transaction(async (tx) => {
                 const newIngredient = await tx.ingredient.create({

@@ -34,6 +34,7 @@ export class CreateProductVariantUseCase {
                         outlet_id: outletId,
                         product_id: dto.product_id,
                         variant_name: dto.variant_name,
+                        price: dto.price,
                         description: dto.description,
                         is_active: dto.is_active ?? true,
                     },
@@ -51,6 +52,7 @@ export class CreateProductVariantUseCase {
                         new_value: {
                             variant_name: newVariant.variant_name,
                             description: newVariant.description,
+                            price: newVariant.price,
                             product_id: newVariant.product_id,
                         },
                     },
