@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsDecimal } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductVariantDto {
@@ -25,6 +25,14 @@ export class CreateProductVariantDto {
     @IsString()
     @IsNotEmpty()
     description!: string;
+
+    @ApiProperty({
+        description: 'Variant price',
+        example: '25000',
+    })
+    @IsDecimal()
+    @IsNotEmpty()
+    price!: string;
 
     @ApiPropertyOptional({
         description: 'Is variant active',

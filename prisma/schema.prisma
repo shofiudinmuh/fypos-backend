@@ -7,42 +7,51 @@ datasource db {
 }
 
 model Tenant {
-  tenant_id                 String  @id @default(cuid())
-  name                      String
-  owner_email                String  @unique
-  phone                     String?
-  address                   String?
-  business_type              String?
+  tenant_id     String  @id @default(cuid())
+  name          String
+  owner_email   String  @unique
+  phone         String?
+  address       String?
+  business_type String?
 
-  trial_end_at                DateTime
-  subscription_status        String
-  subscription_plan_id        String?
-  subscription_end_at         DateTime?
-  grace_period_end_at          DateTime?
+  trial_end_at         DateTime
+  subscription_status  String
+  subscription_plan_id String?
+  subscription_end_at  DateTime?
+  grace_period_end_at  DateTime?
 
+  created_at DateTime  @default(now())
+  updated_at DateTime?
+  deleted_at DateTime?
 
-  created_at                 DateTime @default(now())
-  updated_at                 DateTime?
-  deleted_at                 DateTime?
+  subscriptionPlans SubscriptionPlan? @relation(fields: [subscription_plan_id], references: [subscription_plan_id])
 
-  subscriptionPlans          SubscriptionPlan ? @relation(fields: [subscription_plan_id], references: [subscription_plan_id])
+  subscriptionPayments SubscriptionPayment[]
+  outlets              Outlet[]
+  users                User[]
+  userPermissions      UserPermission[]
+  offlineQueues        OfflineQueue[]
+  productCategories    ProductCategory[]
+  productVariants      ProductVariant[]
+  ingredients          Ingredient[]
+  productIngredients   ProductIngredient[]
+  products             Product[]
+  units                Unit[]
 
-  subscriptionPayments      SubscriptionPayment[]
-  outlets                   Outlet[]
-  users                     User[]
-  userPermissions           UserPermission[]
-  offlineQueues             OfflineQueue[]
-  productCategories         ProductCategory[]
-  productVariants           ProductVariant[]
-  ingredients               Ingredient[]
-  productIngredients        ProductIngredient[]
-  products                  Product[]
-  units                     Unit[]
+  registers      Register[]
+  devices        Device[]
+  paymentMethods PaymentMethod[]
+  orderSessions  OrderSession[]
+  orderItems     OrderItem[]
+  sales          Sale[]
+  saleItems      SaleItem[]
+  salePayments   SalePayment[]
+  refunds        Refund[]
 
-  activityLogs              ActivityLog[]
-  apiLogs                   ApiLog[]
-  shiftLogs                 ShiftLog[]
-  auditLogs                 AuditLog[]
+  activityLogs ActivityLog[]
+  apiLogs      ApiLog[]
+  shiftLogs    ShiftLog[]
+  auditLogs    AuditLog[]
 
   @@map("tenants")
 }
@@ -82,31 +91,37 @@ model SubscriptionPayment {
 }
 
 model Outlet {
-  outlet_id          String @id @default(cuid())
-  tenant_id         String
-  name              String
-  address           String
-  phone             String
-  outlet_code        String @unique
-  created_at         DateTime @default(now())
-  updated_at         DateTime?
-  deleted_at         DateTime?
+  outlet_id   String    @id @default(cuid())
+  tenant_id   String
+  name        String
+  address     String
+  phone       String
+  outlet_code String    @unique
+  created_at  DateTime  @default(now())
+  updated_at  DateTime?
+  deleted_at  DateTime?
 
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  users             User[]
-  offlineQueues     OfflineQueue[]
+  tenants       Tenant         @relation(fields: [tenant_id], references: [tenant_id])
+  users         User[]
+  offlineQueues OfflineQueue[]
 
-  productCategories         ProductCategory[]
-  productVariants           ProductVariant[]
-  ingredients               Ingredient[]
-  productIngredients        ProductIngredient[]
-  products                  Product[]
-  units                     Unit[]
+  productCategories  ProductCategory[]
+  productVariants    ProductVariant[]
+  ingredients        Ingredient[]
+  productIngredients ProductIngredient[]
+  products           Product[]
+  units              Unit[]
 
-  activityLogs          ActivityLog[]
-  apiLogs               ApiLog[]
-  shiftLogs             ShiftLog[]
-  auditLogs             AuditLog[]
+  registers      Register[]
+  devices        Device[]
+  paymentMethods PaymentMethod[]
+  orderSessions  OrderSession[]
+  sales          Sale[]
+
+  activityLogs ActivityLog[]
+  apiLogs      ApiLog[]
+  shiftLogs    ShiftLog[]
+  auditLogs    AuditLog[]
 
   @@index([tenant_id])
   @@map("outlets")
@@ -190,19 +205,20 @@ model PasswordResetToken {
 }
 
 model User {
-  name                String
-  email               String               @unique
-  pin                 String?
-  role                Role                 @default(CASHIER)
-  created_at          DateTime             @default(now())
-  deleted_at          DateTime?
-  is_active           Boolean              @default(true)
-  outlet_id           String
-  password_hash       String?
-  tenant_id           String
-  updated_at          DateTime?
-  user_id             String               @id @default(cuid())
-  google_id           String?
+  name          String
+  email         String    @unique
+  pin           String?
+  role          Role      @default(CASHIER)
+  created_at    DateTime  @default(now())
+  deleted_at    DateTime?
+  is_active     Boolean   @default(true)
+  outlet_id     String
+  password_hash String?
+  tenant_id     String
+  updated_at    DateTime?
+  user_id       String    @id @default(cuid())
+  google_id     String?
+
   activityLogs        ActivityLog[]
   auditLogs           AuditLog[]
   passwordResetTokens PasswordResetToken[]
@@ -212,6 +228,12 @@ model User {
   userPermissions     UserPermission[]
   outlets             Outlet               @relation(fields: [outlet_id], references: [outlet_id], onDelete: Cascade)
   tenants             Tenant               @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+
+  openedSessions OrderSession[] @relation("order_session_opened_by")
+  closedSessions OrderSession[] @relation("order_session_closed_by")
+  cratedSales    Sale[]         @relation("sale_created_by")
+  voidedSales    Sale[]         @relation("sale_voided_by")
+  refundedRefund Refund[]       @relation("refund_refunded_by")
 
   @@index([tenant_id])
   @@map("users")
@@ -229,6 +251,8 @@ model ShiftLog {
   outlets      Outlet   @relation(fields: [outlet_id], references: [outlet_id])
   tenants      Tenant   @relation(fields: [tenant_id], references: [tenant_id])
   users        User     @relation(fields: [user_id], references: [user_id])
+
+  sales Sale[]
 
   @@index([tenant_id, outlet_id])
   @@map("shift_logs")
@@ -308,99 +332,103 @@ enum Role {
   SUPERADMIN
 }
 
-
 model ProductCategory {
-  product_category_id String @id @default(cuid())
-  tenant_id     String
-  outlet_id     String
-  category_name     String @db.VarChar(50)
-  description       String @db.Text
-  created_at        DateTime @default(now())
-  updated_at        DateTime?
-  deleted_at        DateTime?
+  product_category_id String    @id @default(cuid())
+  tenant_id           String
+  outlet_id           String
+  category_name       String    @db.VarChar(50)
+  description         String    @db.Text
+  created_at          DateTime  @default(now())
+  updated_at          DateTime?
+  deleted_at          DateTime?
 
-  tenants         Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets         Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  products        Product[]
+  tenants  Tenant    @relation(fields: [tenant_id], references: [tenant_id])
+  outlets  Outlet    @relation(fields: [outlet_id], references: [outlet_id])
+  products Product[]
 
   @@index([tenant_id, outlet_id])
   @@map("product_categories")
 }
 
 model Product {
-  product_id        String @id @default(cuid())
-  tenant_id         String
-  outlet_id         String
-  product_category_id       String
-  name              String @db.VarChar(100)
-  sku               String?
-  description       String? @db.Text()
-  price             Decimal @db.Decimal(10, 2)
-  image_url         String?
-  is_active         Boolean @default(true)
-  created_at        DateTime @default(now())
-  updated_at        DateTime?
-  deleted_at        DateTime?
+  product_id          String    @id @default(cuid())
+  tenant_id           String
+  outlet_id           String
+  product_category_id String
+  name                String    @db.VarChar(100)
+  sku                 String?
+  description         String?   @db.Text()
+  price               Decimal   @db.Decimal(10, 2)
+  image_url           String?
+  is_active           Boolean   @default(true)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime?
+  deleted_at          DateTime?
 
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  productCategories         ProductCategory @relation(fields: [product_category_id], references: [product_category_id])
-  productVariants         ProductVariant[]
-  productIngredients        ProductIngredient[]
+  tenants            Tenant              @relation(fields: [tenant_id], references: [tenant_id])
+  outlets            Outlet              @relation(fields: [outlet_id], references: [outlet_id])
+  productCategories  ProductCategory     @relation(fields: [product_category_id], references: [product_category_id])
+  productVariants    ProductVariant[]
+  productIngredients ProductIngredient[]
+
   @@index([tenant_id, outlet_id])
   @@map("products")
 }
 
 model ProductVariant {
-  product_variant_id         String @id @default(cuid())
-  tenant_id                 String
-  outlet_id                 String
-  product_id                String
-  variant_name              String @db.VarChar(100)
-  description               String @db.Text
-  is_active                 Boolean @default(true)
-  created_at                DateTime @default(now())
-  updated_at                DateTime?
-  deleted_at                DateTime?
+  product_variant_id String    @id @default(cuid())
+  tenant_id          String
+  outlet_id          String
+  product_id         String
+  variant_name       String    @db.VarChar(100)
+  description        String    @db.Text
+  price              Decimal?  @db.Decimal(10, 2)
+  is_active          Boolean   @default(true)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime?
+  deleted_at         DateTime?
 
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  products          Product @relation(fields: [product_id], references: [product_id])
+  tenants  Tenant  @relation(fields: [tenant_id], references: [tenant_id])
+  outlets  Outlet  @relation(fields: [outlet_id], references: [outlet_id])
+  products Product @relation(fields: [product_id], references: [product_id])
+
+  orderItems OrderItem[]
+  saleItems  SaleItem[]
 
   @@index([tenant_id, outlet_id, product_id])
   @@map("product_variants")
 }
 
 model Unit {
-  unit_id           String @id @default(cuid())
-  tenant_id         String
-  outlet_id         String
-  unit_name         String @db.VarChar(10)
-  is_active         Boolean @default(true)
-  created_at        DateTime @default(now())
-  updated_at        DateTime?
-  deleted_at        DateTime?
+  unit_id    String    @id @default(cuid())
+  tenant_id  String
+  outlet_id  String
+  unit_name  String    @db.VarChar(10)
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime?
+  deleted_at DateTime?
 
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  tenants Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  outlets Outlet @relation(fields: [outlet_id], references: [outlet_id])
 
   @@index([tenant_id, outlet_id])
   @@map("units")
 }
 
 model Ingredient {
-  ingredient_id String @id @default(cuid())
-  tenant_id String
-  outlet_id String
-  ingredient_name String @db.VarChar(100)
-  unit String @db.VarChar(10)
-  minimum_stock Int @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime?
-  deleted_at DateTime?
+  ingredient_id   String    @id @default(cuid())
+  tenant_id       String
+  outlet_id       String
+  ingredient_name String    @db.VarChar(100)
+  unit            String    @db.VarChar(10)
+  minimum_stock   Int       @default(0)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime?
+  deleted_at      DateTime?
 
-  tenants           Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets           Outlet @relation(fields: [outlet_id], references: [outlet_id])
+  tenants            Tenant              @relation(fields: [tenant_id], references: [tenant_id])
+  outlets            Outlet              @relation(fields: [outlet_id], references: [outlet_id])
   productIngredients ProductIngredient[]
 
   @@index([tenant_id, outlet_id])
@@ -408,20 +436,293 @@ model Ingredient {
 }
 
 model ProductIngredient {
-  product_ingredient_id       String @id @default(cuid())
-  tenant_id           String
-  outlet_id           String
-  product_id          String
-  ingredient_id       String
-  qty                 Int
-  created_at          DateTime @default(now())
-  updated_at          DateTime?
-  deleted_at          DateTime?
+  product_ingredient_id String    @id @default(cuid())
+  tenant_id             String
+  outlet_id             String
+  product_id            String
+  ingredient_id         String
+  qty                   Int
+  created_at            DateTime  @default(now())
+  updated_at            DateTime?
+  deleted_at            DateTime?
 
-  tenants             Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  outlets             Outlet @relation(fields: [outlet_id], references: [outlet_id])
-  products            Product @relation(fields: [product_id], references: [product_id])
-  ingredients         Ingredient @relation(fields: [ingredient_id], references: [ingredient_id])
+  tenants     Tenant     @relation(fields: [tenant_id], references: [tenant_id])
+  outlets     Outlet     @relation(fields: [outlet_id], references: [outlet_id])
+  products    Product    @relation(fields: [product_id], references: [product_id])
+  ingredients Ingredient @relation(fields: [ingredient_id], references: [ingredient_id])
+
   @@index([tenant_id, outlet_id, product_id])
   @@map("product_ingredients")
+}
+
+enum OrderChannel {
+  DINE_IN
+  TAKEAWAY
+  DELIVERY
+  AGGREGATOR
+}
+
+enum OrderSessionStatus {
+  OPEN
+  IN_PROGRESS
+  READY_TO_PAY
+  SETTLED
+  CANCELED
+}
+
+enum SalesStatus {
+  OPEN
+  COMPLETED
+  VOIDED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethodType {
+  CASH
+  CARD
+  QRIS
+  BANK_TRANSFER
+  E_WALLET
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  VOIDED
+  REFUNDED
+}
+
+model Register {
+  register_id String    @id @default(cuid())
+  tenant_id   String
+  outlet_id   String
+  name        String
+  code        String
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime?
+  deleted_at  DateTime?
+
+  tenants        Tenant          @relation(fields: [tenant_id], references: [tenant_id])
+  outlets        Outlet          @relation(fields: [outlet_id], references: [outlet_id])
+  orderSessions  OrderSession[]
+  sales          Sale[]
+  paymentMethods PaymentMethod[]
+  devices        Device[]
+
+  @@unique([tenant_id, outlet_id, code])
+  @@index([tenant_id, outlet_id])
+  @@map("registers")
+}
+
+model Device {
+  device_id          String    @id @default(cuid())
+  tenant_id          String
+  outlet_id          String
+  register_id        String
+  name               String
+  device_fingerprint String
+  last_seen_at       DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime?
+  deleted_at         DateTime?
+  tenants            Tenant    @relation(fields: [tenant_id], references: [tenant_id])
+  outlets            Outlet    @relation(fields: [outlet_id], references: [outlet_id])
+  registers          Register  @relation(fields: [register_id], references: [register_id])
+  sales              Sale[]
+
+  @@unique([tenant_id, device_fingerprint])
+  @@index([tenant_id, outlet_id])
+  @@map("devices")
+}
+
+model PaymentMethod {
+  payment_method_id  String            @id @default(cuid())
+  tenant_id          String
+  outlet_id          String
+  register_id        String?
+  name               String
+  code               String
+  type               PaymentMethodType
+  is_active          Boolean           @default(true)
+  requires_reference Boolean           @default(false)
+  created_at         DateTime          @default(now())
+  updated_at         DateTime?
+  deleted_at         DateTime?
+
+  tenants      Tenant        @relation(fields: [tenant_id], references: [tenant_id])
+  outlets      Outlet        @relation(fields: [outlet_id], references: [outlet_id])
+  registers    Register?     @relation(fields: [register_id], references: [register_id])
+  salePayments SalePayment[]
+
+  @@unique([tenant_id, outlet_id])
+  @@index([tenant_id, outlet_id])
+  @@map("payment_methods")
+}
+
+model OrderSession {
+  order_session_id String             @id @default(cuid())
+  tenant_id        String
+  outlet_id        String
+  register_id      String
+  customer_id      String
+  channel          OrderChannel
+  status           OrderSessionStatus @default(OPEN)
+  guest_count      Int                @default(1)
+  notes            String?            @db.Text
+  opened_at        DateTime           @default(now())
+  closed_at        DateTime?
+  opened_by        String
+  closed_by        String?
+  created_at       DateTime           @default(now())
+  updated_at       DateTime?
+
+  tenants    Tenant      @relation(fields: [tenant_id], references: [tenant_id])
+  outlets    Outlet      @relation(fields: [outlet_id], references: [outlet_id])
+  registers  Register    @relation(fields: [register_id], references: [register_id])
+  opener     User        @relation("order_session_opened_by", fields: [opened_by], references: [user_id])
+  closer     User?       @relation("order_session_closed_by", fields: [closed_by], references: [user_id])
+  orderItems OrderItem[]
+  sales      Sale[]
+
+  @@index([tenant_id, outlet_id, opened_at])
+  @@index([tenant_id, status, opened_at])
+  @@map("order_sessions")
+}
+
+model OrderItem {
+  order_item_id      String    @id @default(cuid())
+  tenant_id          String
+  order_session_id   String
+  product_variant_id String
+  qty                Decimal   @db.Decimal(10, 2)
+  unit_price         Decimal   @db.Decimal(12, 2)
+  discount_amount    Decimal   @default(0) @db.Decimal(12, 2)
+  notes              String?
+  seat_no            String?
+  sent_to_sale       Boolean   @default(false)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime?
+
+  tenants         Tenant         @relation(fields: [tenant_id], references: [tenant_id])
+  orderSessions   OrderSession   @relation(fields: [order_session_id], references: [order_session_id])
+  productVariants ProductVariant @relation(fields: [product_variant_id], references: [product_variant_id])
+
+  @@index([tenant_id, order_session_id])
+  @@map("order_items")
+}
+
+model Sale {
+  sale_id              String       @id @default(cuid())
+  tenant_id            String
+  outlet_id            String
+  register_id          String
+  shift_log_id         String?
+  device_id            String?
+  order_session_id     String?
+  receipt_number       String
+  bussiness_date       DateTime
+  channel              OrderChannel
+  status               SalesStatus  @default(OPEN)
+  customer_id          String?
+  subtotal             Decimal      @db.Decimal(12, 2)
+  discoun_total        Decimal      @default(0) @db.Decimal(12, 2)
+  tax_total            Decimal      @default(0) @db.Decimal(12, 2)
+  service_charge_total Decimal      @default(0) @db.Decimal(12, 2)
+  rounding_total       Decimal      @default(0) @db.Decimal(12, 2)
+  grand_total          Decimal      @db.Decimal(12, 2)
+  paid_total           Decimal      @default(0) @db.Decimal(12, 2)
+  change_total         Decimal      @default(0) @db.Decimal(12, 2)
+  outstanding_total    Decimal      @default(0) @db.Decimal(12, 2)
+  notes                String?      @db.Text
+  created_by           String
+  completed_at         DateTime?
+  voided_at            DateTime?
+  voided_by            String?
+  void_reason          String?      @db.Text
+  created_at           DateTime     @default(now())
+  updated_at           DateTime?
+
+  tenants       Tenant        @relation(fields: [tenant_id], references: [tenant_id])
+  outlets       Outlet        @relation(fields: [outlet_id], references: [outlet_id])
+  registers     Register      @relation(fields: [register_id], references: [register_id])
+  shiftLog      ShiftLog?     @relation(fields: [shift_log_id], references: [shift_log_id])
+  devices       Device?       @relation(fields: [device_id], references: [device_id])
+  orderSessions OrderSession? @relation(fields: [order_session_id], references: [order_session_id])
+  creator       User          @relation("sale_created_by", fields: [created_by], references: [user_id])
+  voider        User?         @relation("sale_voided_by", fields: [voided_by], references: [user_id])
+  items         SaleItem[]
+  payments      SalePayment[]
+  refunds       Refund[]
+
+  @@unique([tenant_id, outlet_id, receipt_number])
+  @@index([tenant_id, outlet_id, bussiness_date])
+  @@index([tenant_id, status, created_at])
+  @@map("sales")
+}
+
+model SaleItem {
+  sale_item_id       String   @id @default(cuid())
+  tenant_id          String
+  sale_id            String
+  product_variant_id String
+  name_snapshot      String
+  qty                Decimal  @db.Decimal(10, 2)
+  unit_price         Decimal  @db.Decimal(12, 2)
+  const_snapshot     Decimal? @db.Decimal(12, 2)
+  discount_amount    Decimal  @default(0) @db.Decimal(12, 2)
+  tax_amount         Decimal  @default(0) @db.Decimal(12, 2)
+  line_total         Decimal  @db.Decimal(12, 2)
+  notes              String?  @db.Text
+  created_at         DateTime @default(now())
+
+  tenants         Tenant         @relation(fields: [tenant_id], references: [tenant_id])
+  sales           Sale           @relation(fields: [sale_id], references: [sale_id])
+  productVariants ProductVariant @relation(fields: [product_variant_id], references: [product_variant_id])
+
+  @@index([tenant_id, sale_id])
+  @@map("sale_items")
+}
+
+model SalePayment {
+  sale_payment_id   String        @id @default(cuid())
+  tenant_id         String
+  sale_id           String
+  payment_method_id String
+  amount            Decimal       @db.Decimal(12, 2)
+  tendered_amount   Decimal?      @db.Decimal(12, 2)
+  reference         String?
+  status            PaymentStatus @default(PAID)
+  paid_at           DateTime      @default(now())
+  created_at        DateTime      @default(now())
+
+  tenants        Tenant        @relation(fields: [tenant_id], references: [tenant_id])
+  sales          Sale          @relation(fields: [sale_id], references: [sale_id])
+  paymentMethods PaymentMethod @relation(fields: [payment_method_id], references: [payment_method_id])
+
+  @@index([tenant_id, sale_id])
+  @@index([tenant_id, payment_method_id, paid_at])
+  @@map("sale_payments")
+}
+
+model Refund {
+  refund_id    String        @id @default(cuid())
+  tenant_id    String
+  sale_id      String
+  reason       String
+  status       PaymentStatus @default(PAID)
+  refund_total Decimal       @db.Decimal(12, 2)
+  refunded_at  DateTime      @default(now())
+  refunded_by  String
+  created_at   DateTime      @default(now())
+
+  tenants  Tenant @relation(fields: [tenant_id], references: [tenant_id])
+  sales    Sale   @relation(fields: [sale_id], references: [sale_id])
+  refunder User   @relation("refund_refunded_by", fields: [refunded_by], references: [user_id])
+
+  @@index([tenant_id, sale_id, refunded_at])
+  @@map("refunds")
 }

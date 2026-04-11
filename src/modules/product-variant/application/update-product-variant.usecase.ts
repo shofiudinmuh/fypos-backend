@@ -51,6 +51,7 @@ export class UpdateProductVariantUseCase {
                         product_id: dto.product_id,
                         variant_name: dto.variant_name,
                         description: dto.description,
+                        price: dto.price,
                         is_active: dto.is_active,
                         updated_at: new Date(),
                     },
@@ -67,11 +68,13 @@ export class UpdateProductVariantUseCase {
                         entity_id: variantId,
                         old_value: {
                             variant_name: existingVariant.variant_name,
+                            price: existingVariant.price,
                             description: existingVariant.description,
                             product_id: existingVariant.product_id,
                         },
                         new_value: {
                             variant_name: updatedVariant.variant_name,
+                            price: updatedVariant.price,
                             description: updatedVariant.description,
                             product_id: updatedVariant.product_id,
                         },

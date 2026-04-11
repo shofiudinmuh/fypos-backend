@@ -16,6 +16,7 @@ import { ProductIngredientModule } from './modules/product-ingredient/product-in
 import { IngredientModule } from './modules/ingredient/ingredient.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { RegisterModule } from './modules/register/register.module';
 
 @Module({
     imports: [
@@ -48,6 +49,7 @@ import { join } from 'path';
         IngredientModule,
         ProductIngredientModule,
         AuditLogModule,
+        RegisterModule,
     ],
     controllers: [AppController],
     providers: [AppService, RedisProvider],

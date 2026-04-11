@@ -5,12 +5,7 @@ import { PrismaService } from 'src/infrastructure/database/prisma.service';
 export class DeleteProductUseCase {
     constructor(private prisma: PrismaService) {}
 
-    async execute(
-        tenantId: string,
-        outletId: string,
-        userId: string,
-        productId: string,
-    ) {
+    async execute(tenantId: string, outletId: string, userId: string, productId: string) {
         try {
             // Check product exists
             const existingProduct = await this.prisma.product.findFirst({
@@ -49,7 +44,7 @@ export class DeleteProductUseCase {
                             deleted_at: null,
                         },
                         new_value: {
-                            deleted_at: "new Date()",
+                            deleted_at: new Date().toISOString(),
                         },
                     },
                 });
